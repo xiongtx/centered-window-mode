@@ -56,13 +56,23 @@
   "Minimum line length required to apply the margins."
   :group 'centered-window-mode)
 
+(defcustom cwm-incremental-padding
+  nil
+  "If t even when the window's width is less than `cwm-centered-window-width' a padding of `cwm-incremental-padding-%' will be applied to each side."
+  :group 'centered-window-mode)
+
+(defcustom cwm-incremental-padding-%
+	2
+  "Incremental padding percentage to use when `cwm-incremental-padding' is t."
+  :group 'centered-window-mode)
+
 (defcustom cwm-use-vertical-padding
   nil
   "Whether or not use experimental vertical padding."
   :group 'centered-window-mode)
 
 (defcustom cwm-frame-internal-border
-  70
+  5
   "Frame internal border to use when vertical padding is used."
   :group 'centered-window-mode)
 
@@ -153,9 +163,15 @@ by this function."
 (defun cwm-calculate-appropriate-fringe-widths (window)
   (let* ((mode-active-p (with-current-buffer (window-buffer window) centered-window-mode))
          (pixel (frame-char-width (window-frame window)))
+         (window-width (window-total-width window))
          (n  (if mode-active-p
-                 (/ (max (- (window-total-width window) cwm-centered-window-width) 0)
-                    2)
+               (max
+                (/ (- window-width cwm-centered-window-width)
+                   2)
+                (if cwm-incremental-padding
+                    (/ (* window-width cwm-incremental-padding-%)
+                       100)
+                  0))
                0))
          (ratio (/ (* n cwm-left-fringe-ratio) 100))
          (left-width (* pixel (if (> n 0) (+ n ratio) n)))
